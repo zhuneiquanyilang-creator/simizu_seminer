@@ -1,0 +1,180 @@
+:root {
+  --bg: #f4f6f9;
+  --card: #ffffff;
+  --ink: #1f2733;
+  --muted: #6b7682;
+  --line: #e2e7ee;
+  --accent: #2f6df0;
+  --accent-ink: #ffffff;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  line-height: 1.6;
+}
+.muted { color: var(--muted); }
+.small { font-size: .85rem; }
+.error { color: #c0392b; }
+.spacer { flex: 1; }
+
+/* ---------- ログイン ---------- */
+#view-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.login-card {
+  background: var(--card);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 2.4rem 2rem;
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+}
+.login-card h1 { margin: 0 0 .2rem; font-size: 1.6rem; }
+.login-card form { margin-top: 1.6rem; text-align: left; }
+.login-card label { font-size: .85rem; color: var(--muted); }
+.login-card input[type=password] {
+  width: 100%;
+  padding: .7rem .8rem;
+  margin: .35rem 0 1rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 1rem;
+}
+.login-card button {
+  width: 100%;
+  padding: .7rem;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.login-card .small { margin-top: 1.2rem; }
+
+/* ---------- ヘッダー ---------- */
+#app-header {
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.header-inner {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: .7rem 1rem;
+}
+.brand { font-weight: 700; }
+.brand-sub { color: var(--muted); font-size: .85rem; }
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: .9rem;
+  padding: .3rem .4rem;
+}
+.badge {
+  background: #fff3cd;
+  color: #8a6d00;
+  border: 1px solid #ffe08a;
+  border-radius: 999px;
+  padding: .1rem .6rem;
+  font-size: .75rem;
+}
+
+/* ---------- レイアウト ---------- */
+.container { max-width: 1000px; margin: 0 auto; padding: 1.2rem 1rem 4rem; }
+
+.next-banner {
+  background: linear-gradient(90deg, #eaf1ff, #f4f8ff);
+  border: 1px solid #d4e2ff;
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.2rem;
+  font-size: 1.05rem;
+}
+.next-banner b { color: var(--accent); }
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+.filters label { font-size: .8rem; color: var(--muted); display: flex; flex-direction: column; gap: .25rem; }
+.filters select, .filters input {
+  padding: .45rem .6rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: .95rem;
+  background: var(--card);
+}
+
+/* ---------- 章・節 ---------- */
+.part-head { color: var(--muted); font-size: .85rem; margin: 1.4rem 0 .4rem; letter-spacing: .03em; }
+.chapter { background: var(--card); border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1rem; overflow: hidden; }
+.chapter-head { padding: .8rem 1rem; border-bottom: 1px solid var(--line); font-weight: 700; }
+.chapter-head .ch-page { color: var(--muted); font-weight: 400; font-size: .8rem; margin-left: .5rem; }
+
+table.sections { width: 100%; border-collapse: collapse; }
+table.sections td { padding: .55rem .7rem; border-bottom: 1px solid var(--line); font-size: .95rem; vertical-align: middle; }
+table.sections tr:last-child td { border-bottom: none; }
+table.sections tr.clickable { cursor: pointer; }
+table.sections tr.clickable:hover { background: #f7f9fc; }
+.col-no { width: 3.4rem; color: var(--muted); white-space: nowrap; }
+.col-assignee { width: 6rem; }
+.col-date { width: 6rem; color: var(--muted); white-space: nowrap; }
+.col-status { width: 7.5rem; }
+.has-resume { color: var(--accent); font-size: .8rem; margin-left: .4rem; }
+
+/* ステータスのピル */
+.status { display: inline-flex; align-items: center; gap: .3rem; padding: .12rem .55rem; border-radius: 999px; font-size: .8rem; white-space: nowrap; }
+.status[data-s="担当未決定"] { background: #eef1f4; color: #6b7682; }
+.status[data-s="準備中"]     { background: #e7f0ff; color: #2f6df0; }
+.status[data-s="未完了"]     { background: #fff4e0; color: #b9770e; }
+.status[data-s="発表済み"]   { background: #e7f7ec; color: #2f9e54; }
+
+/* ---------- 詳細 ---------- */
+.card { background: var(--card); border-radius: 12px; box-shadow: var(--shadow); padding: 1.1rem 1.2rem; margin: 1rem 0; }
+.muted-card { background: #fafbfc; box-shadow: none; border: 1px dashed var(--line); }
+.card h3 { margin-top: 0; }
+.field-row { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; }
+.field-row label { font-size: .8rem; color: var(--muted); display: flex; flex-direction: column; gap: .25rem; }
+.field-row select, .field-row input { padding: .45rem .6rem; border: 1px solid var(--line); border-radius: 8px; font-size: .95rem; }
+button.primary { background: var(--accent); color: var(--accent-ink); border: none; border-radius: 8px; padding: .55rem 1.1rem; font-size: .95rem; cursor: pointer; }
+.saved { color: #2f9e54; font-size: .85rem; }
+
+.resume-list { list-style: none; padding: 0; margin: 0 0 1rem; }
+.resume-list li { display: flex; align-items: center; gap: .6rem; padding: .5rem .2rem; border-bottom: 1px solid var(--line); font-size: .95rem; }
+.resume-list .fname { flex: 1; }
+.resume-list .fsize { color: var(--muted); font-size: .8rem; }
+.resume-list a, .resume-list .del { color: var(--accent); cursor: pointer; text-decoration: none; font-size: .85rem; background: none; border: none; padding: .2rem .3rem; }
+.resume-list .del { color: #c0392b; }
+
+.upload-box { border: 1px dashed var(--line); border-radius: 10px; padding: 1rem; }
+.upload-row { display: flex; gap: .6rem; margin: .6rem 0 .2rem; flex-wrap: wrap; }
+.upload-row input { flex: 1; min-width: 8rem; padding: .45rem .6rem; border: 1px solid var(--line); border-radius: 8px; }
+
+#back-btn { margin-bottom: .4rem; }
+
+/* ---------- スマホ ---------- */
+@media (max-width: 620px) {
+  .brand-sub { display: none; }
+  .col-date { display: none; }
+  table.sections td { padding: .5rem .4rem; }
+}
