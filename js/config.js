@@ -19,9 +19,9 @@ window.CONFIG = {
   SITE_NAME: "清水研究室",
   SUBTITLE: "非線形ダイナミクスとカオス 輪読",
 
-  SUPABASE_URL: "",
-  SUPABASE_ANON_KEY: "",
-  SHARED_EMAIL: "",
+  SUPABASE_URL: "https://lvaxwzktsbjxfetinoqy.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_vo-IcomgJKRqE5nLF6Pj-w_NNLZGaNk", // Publishable key（ブラウザ公開OK）
+  SHARED_EMAIL: "seminar@example.com",
 
   // レジュメ1ファイルの上限（MB）。超過分はアップロードを拒否。
   MAX_FILE_MB: 20,
