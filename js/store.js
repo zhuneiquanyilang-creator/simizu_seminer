@@ -39,8 +39,12 @@ window.AppStore = (function () {
         return map;
       },
       async uploadResume(id, file, uploader) {
-        const path = `${id}/${Date.now()}_${file.name}`;
-        const up = await sb.storage.from("resumes").upload(path, file);
+        // 保存キーはASCII安全に（日本語/空白などはストレージが拒否するため）。
+        // 表示名は元のファイル名を file_name に保持する。
+        const safeId = id.replace(/[^\w.\-]/g, "_");
+        const safeName = (file.name || "file.pdf").replace(/[^\w.\-]/g, "_");
+        const path = `${safeId}/${Date.now()}_${safeName}`;
+        const up = await sb.storage.from("resumes").upload(path, file, { contentType: "application/pdf" });
         if (up.error) throw up.error;
         const { error } = await sb.from("resumes").insert({
           section_id: id, file_name: file.name, uploader: uploader || null,
