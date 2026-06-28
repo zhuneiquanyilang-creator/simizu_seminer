@@ -35,21 +35,30 @@ window.AppStore = (function () {
         const { data, error } = await sb.from("resumes").select("*").order("created_at");
         if (error) throw error;
         const map = {};
-        (data || []).forEach((r) => { (map[r.section_id] = map[r.section_id] || []).push(r); });
+        (data || []).forEach((r) => {
+          const ids = (r.section_ids && r.section_ids.length) ? r.section_ids : [r.section_id];
+          ids.forEach((id) => { (map[id] = map[id] || []).push(r); });
+        });
         return map;
       },
-      async uploadResume(id, file, uploader) {
+      async uploadResume(id, file, uploader, sectionIds) {
         // 保存キーはASCII安全に（日本語/空白などはストレージが拒否するため）。
         // 表示名は元のファイル名を file_name に保持する。
+        const ids = (sectionIds && sectionIds.length) ? sectionIds : [id];
         const safeId = id.replace(/[^\w.\-]/g, "_");
         const safeName = (file.name || "file.pdf").replace(/[^\w.\-]/g, "_");
         const path = `${safeId}/${Date.now()}_${safeName}`;
         const up = await sb.storage.from("resumes").upload(path, file, { contentType: "application/pdf" });
         if (up.error) throw up.error;
         const { error } = await sb.from("resumes").insert({
-          section_id: id, file_name: file.name, uploader: uploader || null,
+          section_id: id, section_ids: ids, file_name: file.name, uploader: uploader || null,
           storage_path: path, file_size: file.size,
         });
+        if (error) throw error;
+      },
+      async updateResumeSections(r, sectionIds) {
+        const ids = (sectionIds && sectionIds.length) ? sectionIds : [r.section_id];
+        const { error } = await sb.from("resumes").update({ section_ids: ids }).eq("id", r.id);
         if (error) throw error;
       },
       async resumeUrl(r) {
@@ -89,19 +98,34 @@ window.AppStore = (function () {
         a[id] = { section_id: id, assignee: v.assignee || null, present_date: v.present_date || null, status: v.status };
         save(KEY_A, a);
       },
-      async getResumes() { return load(KEY_R); },
-      async uploadResume(id, file, uploader) {
-        const r = load(KEY_R);
+      // デモは「レジュメ配列」を1つ持ち、section_ids で複数節に展開する
+      async getResumes() {
+        const arr = load(KEY_R).items || [];
+        const map = {};
+        arr.forEach((r) => {
+          const ids = (r.section_ids && r.section_ids.length) ? r.section_ids : [r.section_id];
+          ids.forEach((id) => { (map[id] = map[id] || []).push(r); });
+        });
+        return map;
+      },
+      async uploadResume(id, file, uploader, sectionIds) {
+        const ids = (sectionIds && sectionIds.length) ? sectionIds : [id];
+        const store = load(KEY_R); store.items = store.items || [];
         const rid = "d" + Date.now();
-        (r[id] = r[id] || []).push({ id: rid, section_id: id, file_name: file.name, uploader: uploader || null, file_size: file.size });
-        save(KEY_R, r);
+        store.items.push({ id: rid, section_id: id, section_ids: ids, file_name: file.name, uploader: uploader || null, file_size: file.size });
+        save(KEY_R, store);
         blobs[rid] = URL.createObjectURL(file);
+      },
+      async updateResumeSections(r, sectionIds) {
+        const ids = (sectionIds && sectionIds.length) ? sectionIds : [r.section_id];
+        const store = load(KEY_R); store.items = store.items || [];
+        const t = store.items.find((x) => x.id === r.id);
+        if (t) { t.section_ids = ids; save(KEY_R, store); }
       },
       async resumeUrl(r) { return blobs[r.id] || null; },
       async deleteResume(r) {
-        const all = load(KEY_R);
-        all[r.section_id] = (all[r.section_id] || []).filter((x) => x.id !== r.id);
-        save(KEY_R, all);
+        const store = load(KEY_R); store.items = (store.items || []).filter((x) => x.id !== r.id);
+        save(KEY_R, store);
       },
     };
   }

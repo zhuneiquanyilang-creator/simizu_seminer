@@ -160,11 +160,24 @@ button.primary { background: var(--accent); color: var(--accent-ink); border: no
 .saved { color: #2f9e54; font-size: .85rem; }
 
 .resume-list { list-style: none; padding: 0; margin: 0 0 1rem; }
-.resume-list li { display: flex; align-items: center; gap: .6rem; padding: .5rem .2rem; border-bottom: 1px solid var(--line); font-size: .95rem; }
-.resume-list .fname { flex: 1; }
+.resume-li { padding: .5rem .2rem; border-bottom: 1px solid var(--line); font-size: .95rem; }
+.resume-main { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.resume-list .fname { flex: 1; min-width: 10rem; }
 .resume-list .fsize { color: var(--muted); font-size: .8rem; }
-.resume-list a, .resume-list .del { color: var(--accent); cursor: pointer; text-decoration: none; font-size: .85rem; background: none; border: none; padding: .2rem .3rem; }
+.resume-list a, .resume-list .del, .resume-list .linkish { color: var(--accent); cursor: pointer; text-decoration: none; font-size: .85rem; background: none; border: none; padding: .2rem .3rem; }
 .resume-list .del { color: #c0392b; }
+.resume-cover { color: var(--muted); font-size: .8rem; margin-top: .25rem; }
+.resume-edit { margin-top: .5rem; }
+.edit-row { display: flex; gap: .6rem; align-items: center; margin-top: .5rem; }
+.small-btn { padding: .35rem .9rem; font-size: .85rem; }
+
+/* 節の複数選択チェックリスト */
+.pick-label { font-size: .85rem; color: var(--muted); margin: .6rem 0 .3rem; }
+.section-pick { max-height: 220px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; padding: .4rem .6rem; background: #fcfdff; }
+.pick-chapter { margin-bottom: .4rem; }
+.pick-chapter-head { font-size: .8rem; font-weight: 700; color: var(--muted); margin: .4rem 0 .2rem; position: sticky; top: 0; background: #fcfdff; }
+.pick-item { display: flex; align-items: center; gap: .5rem; font-size: .9rem; padding: .15rem 0 .15rem .6rem; cursor: pointer; }
+.pick-item input { width: 1.1rem; height: 1.1rem; }
 
 .upload-box { border: 1px dashed var(--line); border-radius: 10px; padding: 1rem; }
 .upload-row { display: flex; gap: .6rem; margin: .6rem 0 .2rem; flex-wrap: wrap; }

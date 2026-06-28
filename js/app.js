@@ -196,8 +196,34 @@
     $("file-input").value = "";
     $("uploader").value = "";
     $("upload-msg").hidden = true;
+    // アップロード対象の節チェックリスト（初期は現在の節をチェック）
+    buildSectionChecklist($("upload-sections"), new Set([id]));
 
     showView("detail");
+  }
+
+  /* 節の複数選択チェックリストを container に描画。selectedSet は初期選択。 */
+  function buildSectionChecklist(container, selectedSet) {
+    container.innerHTML = "";
+    TOC.chapters.forEach((ch) => {
+      const grp = el("div", "pick-chapter");
+      grp.appendChild(el("div", "pick-chapter-head", `${ch.number}. ${ch.title}`));
+      ch.sections.forEach((s) => {
+        const lab = el("label", "pick-item");
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.value = s.id;
+        if (selectedSet.has(s.id)) cb.checked = true;
+        lab.appendChild(cb);
+        lab.appendChild(el("span", null, `${s.no} ${s.title}`));
+        grp.appendChild(lab);
+      });
+      container.appendChild(grp);
+    });
+  }
+
+  function readChecklist(container) {
+    return [...container.querySelectorAll('input[type=checkbox]:checked')].map((c) => c.value);
   }
 
   async function onSaveAssignment() {
@@ -228,10 +254,16 @@
     for (const r of rs) list.appendChild(await resumeItem(r));
   }
 
+  function resumeSectionIds(r) {
+    return (r.section_ids && r.section_ids.length) ? r.section_ids : [r.section_id];
+  }
+
   async function resumeItem(r) {
-    const li = el("li");
-    li.appendChild(el("span", "fname", "📄 " + r.file_name + (r.uploader ? `（${r.uploader}）` : "")));
-    if (r.file_size) li.appendChild(el("span", "fsize", fmtSize(r.file_size)));
+    const li = el("li", "resume-li");
+    const main = el("div", "resume-main");
+
+    main.appendChild(el("span", "fname", "📄 " + r.file_name + (r.uploader ? `（${r.uploader}）` : "")));
+    if (r.file_size) main.appendChild(el("span", "fsize", fmtSize(r.file_size)));
 
     // 表示リンクは事前にURLを用意して通常リンクにする
     // （await 後に window.open するとモバイルでポップアップブロックされるため）
@@ -240,28 +272,63 @@
     view.rel = "noopener";
     try {
       const url = await Store.resumeUrl(r);
-      if (url) {
-        view.href = url;
-      } else {
-        view.href = "#";
-        view.addEventListener("click", (e) => { e.preventDefault(); alert("デモモードではリロード後にファイルを再表示できません（メタ情報のみ保存）。"); });
-      }
+      if (url) view.href = url;
+      else { view.href = "#"; view.addEventListener("click", (e) => { e.preventDefault(); alert("デモモードではリロード後にファイルを再表示できません（メタ情報のみ保存）。"); }); }
     } catch (err) {
       view.href = "#";
       view.addEventListener("click", (e) => { e.preventDefault(); alert("表示用URLの取得に失敗しました: " + (err.message || err)); });
     }
-    li.appendChild(view);
+    main.appendChild(view);
+
+    const editBtn = el("button", "linkish", "対象節を編集");
+    main.appendChild(editBtn);
 
     const del = el("button", "del", "削除");
     del.addEventListener("click", async () => {
-      if (!confirm(`「${r.file_name}」を削除しますか？`)) return;
+      if (!confirm(`「${r.file_name}」を削除しますか？（紐づく全ての節から消えます）`)) return;
       try {
         await Store.deleteResume(r);
-        resumes[currentSectionId] = (resumes[currentSectionId] || []).filter((x) => x.id !== r.id);
+        resumes = await Store.getResumes();
         renderResumes();
       } catch (err) { alert("削除に失敗しました: " + (err.message || err)); }
     });
-    li.appendChild(del);
+    main.appendChild(del);
+    li.appendChild(main);
+
+    // 対象節の表示
+    const ids = resumeSectionIds(r);
+    const cover = el("div", "resume-cover", "対象節: " + ids.join("、"));
+    li.appendChild(cover);
+
+    // 対象節の編集パネル（初期は隠す）
+    const editor = el("div", "resume-edit");
+    editor.hidden = true;
+    const pick = el("div", "section-pick");
+    const save = el("button", "primary small-btn", "保存");
+    const cancel = el("button", "linkish", "キャンセル");
+    const editRow = el("div", "edit-row");
+    editRow.appendChild(save); editRow.appendChild(cancel);
+    editor.appendChild(pick);
+    editor.appendChild(editRow);
+    li.appendChild(editor);
+
+    editBtn.addEventListener("click", () => {
+      if (editor.hidden) { buildSectionChecklist(pick, new Set(resumeSectionIds(r))); editor.hidden = false; }
+      else editor.hidden = true;
+    });
+    cancel.addEventListener("click", () => { editor.hidden = true; });
+    save.addEventListener("click", async () => {
+      const sel = readChecklist(pick);
+      if (!sel.length) { alert("少なくとも1つの節を選んでください。"); return; }
+      save.disabled = true;
+      try {
+        await Store.updateResumeSections(r, sel);
+        resumes = await Store.getResumes();
+        renderResumes();
+      } catch (err) { alert("更新に失敗しました: " + (err.message || err)); }
+      finally { save.disabled = false; }
+    });
+
     return li;
   }
 
@@ -271,14 +338,19 @@
     if (f.type !== "application/pdf") return showUploadMsg("PDFファイルのみアップロードできます。");
     if (f.size > C.MAX_FILE_MB * 1024 * 1024) return showUploadMsg(`ファイルが大きすぎます（上限 ${C.MAX_FILE_MB}MB）。`);
 
+    let sectionIds = readChecklist($("upload-sections"));
+    if (!sectionIds.length) sectionIds = [currentSectionId]; // 最低1つ
+    if (!sectionIds.includes(currentSectionId)) sectionIds.push(currentSectionId);
+
     $("upload-btn").disabled = true;
     showUploadMsg("アップロード中…");
     try {
-      await Store.uploadResume(currentSectionId, f, $("uploader").value.trim());
+      await Store.uploadResume(currentSectionId, f, $("uploader").value.trim(), sectionIds);
       resumes = await Store.getResumes();
       renderResumes();
       $("file-input").value = "";
-      showUploadMsg("アップロードしました。");
+      buildSectionChecklist($("upload-sections"), new Set([currentSectionId]));
+      showUploadMsg(`アップロードしました（対象 ${sectionIds.length} 節）。`);
     } catch (err) {
       showUploadMsg("アップロードに失敗しました: " + (err.message || err));
     } finally {
