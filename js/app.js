@@ -220,27 +220,36 @@
     }
   }
 
-  function renderResumes() {
+  async function renderResumes() {
     const list = $("resume-list");
     list.innerHTML = "";
     const rs = resumes[currentSectionId] || [];
     $("resume-empty").hidden = rs.length > 0;
-    rs.forEach((r) => list.appendChild(resumeItem(r)));
+    for (const r of rs) list.appendChild(await resumeItem(r));
   }
 
-  function resumeItem(r) {
+  async function resumeItem(r) {
     const li = el("li");
     li.appendChild(el("span", "fname", "📄 " + r.file_name + (r.uploader ? `（${r.uploader}）` : "")));
     if (r.file_size) li.appendChild(el("span", "fsize", fmtSize(r.file_size)));
 
+    // 表示リンクは事前にURLを用意して通常リンクにする
+    // （await 後に window.open するとモバイルでポップアップブロックされるため）
     const view = el("a", null, "表示");
-    view.href = "#";
-    view.addEventListener("click", async (e) => {
-      e.preventDefault();
+    view.target = "_blank";
+    view.rel = "noopener";
+    try {
       const url = await Store.resumeUrl(r);
-      if (url) window.open(url, "_blank");
-      else alert("デモモードではリロード後にファイルを再表示できません（メタ情報のみ保存）。");
-    });
+      if (url) {
+        view.href = url;
+      } else {
+        view.href = "#";
+        view.addEventListener("click", (e) => { e.preventDefault(); alert("デモモードではリロード後にファイルを再表示できません（メタ情報のみ保存）。"); });
+      }
+    } catch (err) {
+      view.href = "#";
+      view.addEventListener("click", (e) => { e.preventDefault(); alert("表示用URLの取得に失敗しました: " + (err.message || err)); });
+    }
     li.appendChild(view);
 
     const del = el("button", "del", "削除");
